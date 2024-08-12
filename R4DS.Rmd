@@ -1,0 +1,186 @@
+---
+title: "R4DS"
+output: html_notebook
+---
+Introduction to using R for data science
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+library(ggthemes)
+```
+
+Now that packages are loaded, we can look at the data itself:
+
+```{r}
+penguins
+```
+Bear in mind that 'tidy' data has a single row per observation (observation = penguin, in this case), each value is in it's own cell, and each variable refers to a single column. Is this data 'tidy'? There don't seem to be any unique IDs, but certainly if we had two observations with the same measurements across all variables, this would point to 'No' regarding the observation requirement...
+
+```{r}
+# utilise the unique() function to return all rows containing unique observation, check the count against the original dataset
+dimensions_original <- dim(penguins)
+
+unique_penguins <- unique(penguins)
+dimensions_analyses <- dim(unique_penguins)
+
+dimensions_analyses == dimensions_original
+print(dimensions_analyses)
+print(dimensions_original)
+# They are all unique, therefore tidy in the sense of observations, at least.
+```
+Now, let's create the graph to show the relationships between variables!
+
+```{r}
+# Lets examine what we've created below:
+# firstly, line '1' gives us the mapping of the x and y variables ONLY, leaving the rest as a choice. We can map the colour to species in any 'geom' function used if we wish to
+figure_1 <- ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(mapping = aes(colour = species, shape = species)) + 
+  geom_smooth(method = "lm") +
+  labs(
+    title = "Mass vs Flipper Length",
+    subtitle = "Scatterplot With Fitted Linear Regression Across All Species",
+    x = "Flipper Length (mm)",
+    y = "Body Mass (grams)"
+  )
+
+# The mapping in geom_point() keeps the colour and shape separated by species only within the scatterpoints themselves. Thus, the line of best fit isn't separated by species/colour
+
+figure_1
+```
+Exercises:
+
+```{r}
+?penguins
+```
+
+```{r}
+bill_depth_length <- ggplot(penguins, mapping = aes(x = species, y = bill_depth_mm)) +
+  geom_boxplot(mapping = aes(colour = species))  +
+  labs(
+    caption = "Data come from the palmerpenguins package."
+  )
+
+bill_depth_length
+```
+```{r}
+ggplot(data = penguins) + 
+  geom_point()
+```
+```{r}
+?labs
+```
+
+```{r}
+scratch_plot <- ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(mapping = aes(colour = bill_depth_mm)) +
+  geom_smooth()
+
+scratch_plot
+```
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(x = flipper_length_mm, y = body_mass_g, color = island)
+) +
+  geom_point() +
+  geom_smooth(se = TRUE)
+```
+
+```{r}
+ggplot() +
+  geom_point(
+    data = penguins,
+    mapping = aes(x = flipper_length_mm, y = body_mass_g)
+  ) +
+  geom_smooth(
+    data = penguins,
+    mapping = aes(x = flipper_length_mm, y = body_mass_g)
+  )
+```
+What about categorical variables?
+
+```{r}
+# Don't need to enter in the y variable, just takes in 'count'. fct_infreq allows you to
+# transform into factors and order by frequency!
+ggplot(penguins, aes(x = fct_infreq(species))) +
+  geom_bar()
+```
+
+A useful chart for categorical variables also includes histograms:
+
+```{r}
+ggplot(penguins, aes(x = body_mass_g)) +
+  geom_histogram(bins = 52) # Note that bins allows you to specify an exact number of bins, whereas bindwidth gives the width and then calculates the number of bins from that
+```
+
+Exercises:
+
+```{r}
+ggplot(penguins, aes(y = fct_infreq(species))) +
+  geom_bar()
+```
+
+```{r}
+ggplot(diamonds, aes(x = carat)) +
+  geom_density()
+
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_point(aes(colour = cut))
+```
+```{r}
+# We can also look at stacking two categorical variables against one another
+
+ggplot(penguins, aes(x = island, fill = species)) + #The fill aesthetic tells you how to colour the bars
+  geom_bar()
+
+ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar(position = "fill")
+```
+
+```{r}
+# Getting 4 variables into a single chart:
+
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(aes(color = species, shape = island))
+# Pretty, but messy. How about facet_wrap()?:
+
+ggplot(penguins, aes(x = flipper_length_mm, y = body_mass_g)) +
+  geom_point(aes(color = species)) +
+  facet_wrap(~island)
+```
+
+Exercises:
+
+```{r}
+head(mpg)
+```
+```{r}
+ggplot(mpg, aes(hwy, displ, size = cty, colour = cty)) +
+  geom_point()
+```
+
+```{r}
+ggplot(penguins, aes(bill_depth_mm, bill_length_mm)) +
+  geom_point(aes(colour = species)) +
+  geom_smooth(colour = "black") +
+  facet_wrap(~species)
+```
+
+```{r}
+ggplot(
+  data = penguins,
+  mapping = aes(
+    x = bill_length_mm, y = bill_depth_mm, 
+    color = species, shape = species
+  )
+) +
+  geom_point()
+```
+
+```{r}
+ggplot(penguins, aes(x = island, fill = species)) +
+  geom_bar(position = "fill")
+ggplot(penguins, aes(x = species, fill = island)) +
+  geom_bar(position = "fill")
+```
